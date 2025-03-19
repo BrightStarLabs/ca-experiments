@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Discrete Convolutional Cellular Automata</title>
+  <style>
+    /* Basic Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+    
+    .controls {
+      background: #fff;
+      padding: 15px;
+      margin: 0 auto 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 1000px;
+    }
+    
+    .settings-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+    
+    .input-group {
+      display: flex;
+      align-items: center;
+      margin: 5px 15px;
+    }
+    
+    .input-group label {
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+    
+    .input-group input {
+      padding: 5px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+    }
+    
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 3px;
+      background-color: #666;
+      color: #fff;
+    }
+    
+    button:hover {
+      background-color: #555;
+    }
+    
+    /* Flexible Layout System */
+    .content-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      gap: 20px;
+    }
+    
+    /* Side panels container */
+    .side-panels {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 250px;
+    }
+    
+    /* Main canvas container */
+    .central-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 500px;
+      max-width: 1000px;
+    }
+    
+    canvas#automataCanvas {
+      border: 1px solid #333;
+      background-color: #fff;
+      display: block;
+      max-width: 100%;
+    }
+    
+    /* Console Area Styles */
+    .consoleArea {
+      width: 100%;
+    }
+    
+    #toggleConsoleBtn {
+      margin-bottom: 5px;
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 100%;
+    }
+    
+    #errorConsoleContainer {
+      background: #333;
+      color: #ddd;
+      border: 1px solid #666;
+      border-radius: 4px;
+      width: 100%;
+      height: 150px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    #errorConsole {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 8px;
+      box-sizing: border-box;
+      font-family: monospace;
+      font-size: 12px;
+      color: #ddd;
+    }
+    
+    /* Help Area Styles */
+    .helpArea {
+      width: 100%;
+    }
+    
+    #toggleHelpBtn {
+      margin-bottom: 5px;
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 100%;
+    }
+    
+    #helpContainer {
+      background: #fff;
+      color: #333;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      height: 250px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    #helpContent {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 12px;
+    }
+    
+    #helpContent h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    #helpContent p {
+      margin: 6px 0;
+    }
+    
+    #helpContent ul {
+      margin: 6px 0;
+      padding-left: 20px;
+    }
+    
+    /* Activation Function Plot Area */
+    .plotArea {
+      width: 100%;
+    }
+    
+    #plotActivationBtn {
+      margin-bottom: 5px;
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 100%;
+    }
+    
+    #activationCanvas {
+      border: 1px solid #333;
+      background-color: #fff;
+      width: 100%;
+      height: 180px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 1000px) {
+      .content-wrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .side-panels {
+        order: 2;
+        width: 90%;
+        max-width: 500px;
+      }
+      
+      .central-content {
+        order: 1;
+        min-width: auto;
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Discrete Convolutional Cellular Automata</h1>
+  <div class="controls">
+    <div class="settings-row">
+      <div class="input-group">
+        <label for="kernelInput">Kernel:</label>
+        <input type="text" id="kernelInput" placeholder="[1,1,1]" value="[1,1,1]">
+      </div>
+      <div class="input-group">
+        <label for="activationInput">Activation Mapping:</label>
+        <input type="text" id="activationInput" placeholder="{0:0, 1:1, 2:1, 3:0}" value="{0:0, 1:1, 2:1, 3:0}" list="ruleSuggestions">
+        <datalist id="ruleSuggestions">
+          <option value="{0:0, 1:1, 2:1, 3:0}">Rule 110</option>
+          <option value="{3:1, 2:1, 1:1, 0:0}">Rule 120</option>
+          <option value="{1:1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1}">Game of Life</option>
+          <option value="{3:1, 6:1, 7:1, 8:1}">Day & Night</option>
+        </datalist>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="input-group">
+        <label for="iterationsInput">Iterations:</label>
+        <input type="number" id="iterationsInput" placeholder="100" value="100">
+      </div>
+      <div class="input-group">
+        <label for="tapeLengthInput">Tape Length:</label>
+        <input type="number" id="tapeLengthInput" placeholder="100" value="100">
+      </div>
+    </div>
+    <div class="buttons">
+      <button id="startBtn">Start</button>
+      <button id="stopBtn">Stop</button>
+      <button id="randomizeBtn">Randomize</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </div>
+  
+  <div class="content-wrapper">
+    <!-- Left side panels -->
+    <div class="side-panels">
+      <!-- Console Area -->
+      <div class="consoleArea">
+        <button id="toggleConsoleBtn">Show Console</button>
+        <div id="errorConsoleContainer" style="display:none;">
+          <div id="errorConsole"></div>
+        </div>
+      </div>
+      
+      <!-- Activation Function Plot -->
+      <div class="plotArea">
+        <button id="plotActivationBtn">Plot Activation</button>
+        <canvas id="activationCanvas" width="250" height="180"></canvas>
+      </div>
+    </div>
+    
+    <!-- Center: Main Automata Canvas -->
+    <div class="central-content">
+      <canvas id="automataCanvas"></canvas>
+    </div>
+    
+    <!-- Right side panels -->
+    <div class="side-panels">
+      <!-- Help Section -->
+      <div class="helpArea">
+        <button id="toggleHelpBtn">How It Works</button>
+        <div id="helpContainer" style="display:none;">
+          <div id="helpContent">
+            <h3>Discrete Cellular Automata</h3>
+            <p>This simulator evolves a 1-dimensional cellular automaton using convolution with a kernel and a discrete activation function. Cell values are either 0 or 1.</p>
+            <p>Each new cell state is computed using:</p>
+            <p style="text-align:center;font-style:italic;">s<sub>t+1</sub> = σ(K * s<sub>t</sub>)</p>
+            <p>Where σ is the discrete activation mapping, determining the output (0 or 1) for each possible convolution sum.</p>
+            <ul>
+              <li><strong>Kernel:</strong> Determines the convolution weights</li>
+              <li><strong>Activation Mapping:</strong> Maps sum values to binary outputs</li>
+              <li><strong>Black cells:</strong> Value 1</li>
+              <li><strong>White cells:</strong> Value 0</li>
+            </ul>
+            <p>Format for activation mapping: {sum1:value1, sum2:value2, ...}</p>
+            <p>For example: {0:0, 1:1, 2:1, 3:0} means:<br>
+               - If sum = 0, output 0<br>
+               - If sum = 1, output 1<br>
+               - If sum = 2, output 1<br>
+               - If sum = 3, output 0<br>
+               - All other sums, output 0 (default)
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Parse the activation mapping from a string to an object.
+    function parseActivationMapping(mappingString) {
+      try {
+        // Convert string like {0:0, 1:1, 2:1, 3:0} to a proper object
+        // First, ensure it's valid JSON by replacing single quotes and fixing key format
+        const jsonString = mappingString
+          .replace(/'/g, '"')
+          .replace(/(\w+):/g, '"$1":');
+        
+        return JSON.parse(jsonString);
+      } catch(e) {
+        throw new Error('Error parsing activation mapping "' + mappingString + '": ' + e.message);
+      }
+    }
+    
+    // Log errors to the error console.
+    function logError(message) {
+      const consoleDiv = document.getElementById('errorConsole');
+      const msg = document.createElement('div');
+      msg.textContent = message;
+      consoleDiv.appendChild(msg);
+    }
+    
+    // Clear the error console.
+    function clearErrorConsole() {
+      document.getElementById('errorConsole').innerHTML = '';
+    }
+    
+    // DiscreteCellularAutomata class definition.
+    // The simulation uses binary cell values (0 or 1).
+    class DiscreteCellularAutomata {
+      constructor(canvas, config) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        config = config || {};
+        this.cellSize = config.cellSize || 5;
+        this.iterations = config.iterations || 100;
+        this.tapeLength = config.tapeLength || 100;
+        // Parse the kernel
+        this.kernel = JSON.parse(config.kernel);
+        if (!this.kernel || !Array.isArray(this.kernel)) {
+          throw new Error("Kernel must be a valid JSON array.");
+        }
+        // Parse the activation mapping
+        this.activationMappingString = config.activationMapping || "{0:0, 1:1, 2:1, 3:0}";
+        this.activationMapping = parseActivationMapping(this.activationMappingString);
+        this.grid = [];
+        this.intervalId = null;
+      }
+      
+      // Setup canvas dimensions.
+      setDimensions(tapeLength, iterations, cellSize) {
+        this.tapeLength = tapeLength;
+        this.iterations = iterations;
+        this.cellSize = cellSize;
+        this.canvas.width = tapeLength * cellSize;
+        this.canvas.height = iterations * cellSize;
+      }
+      
+      // Initialize grid with a single row (the center cell active).
+      initGrid() {
+        this.grid = [];
+        let row = new Array(this.tapeLength).fill(0);
+        row[Math.floor(this.tapeLength / 2)] = 1;
+        this.grid.push(row);
+      }
+      
+      // Randomize the initial row with binary values (0 or 1).
+      randomizeGrid() {
+        this.grid = [];
+        let row = [];
+        for (let i = 0; i < this.tapeLength; i++) {
+          row.push(Math.random() > 0.5 ? 1 : 0);
+        }
+        this.grid.push(row);
+      }
+      
+      // Simulate one time step using convolution.
+      simulateStep() {
+        const oldRow = this.grid[this.grid.length - 1].slice();
+        const tapeLength = oldRow.length;
+        const newRow = [];
+        const kernel = this.kernel;
+        const activationMapping = this.activationMapping;
+        const anchor = Math.floor(kernel.length / 2);
+  
+        for (let x = 0; x < tapeLength; x++) {
+          let sum = 0;
+          for (let k = 0; k < kernel.length; k++) {
+            const idx = x + k - anchor;
+            const cellValue = (idx >= 0 && idx < tapeLength) ? oldRow[idx] : 0;
+            sum += cellValue * kernel[k];
+          }
+          // Apply the activation mapping to determine the new cell value
+          newRow.push(activationMapping[sum] !== undefined ? activationMapping[sum] : 0);
+        }
+        this.grid.push(newRow);
+  
+        // Increase canvas height if necessary.
+        if (this.grid.length * this.cellSize > this.canvas.height) {
+          this.canvas.height = this.grid.length * this.cellSize;
+        }
+  
+        this.drawGrid();
+      }
+      
+      // Draw the simulation grid.
+      drawGrid() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        for (let y = 0; y < this.grid.length; y++) {
+          for (let x = 0; x < this.grid[y].length; x++) {
+            // Binary cell values: 0 = white, 1 = black
+            this.ctx.fillStyle = this.grid[y][x] === 1 ? '#000' : '#fff';
+            this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+          }
+        }
+      }
+      
+      // Start simulation at the specified interval.
+      startSimulation(interval = 5) {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+        }
+        this.intervalId = setInterval(() => {
+          if (this.grid.length >= this.iterations) {
+            clearInterval(this.intervalId);
+          } else {
+            this.simulateStep();
+          }
+        }, interval);
+      }
+      
+      // Stop simulation.
+      stopSimulation() {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+          this.intervalId = null;
+        }
+      }
+    }
+    
+    let simulator;
+    const canvas = document.getElementById('automataCanvas');
+    const activationCanvas = document.getElementById('activationCanvas');
+    
+    // Create a simulation instance using the current settings.
+    function createSimulator() {
+      const kernelInput = document.getElementById('kernelInput').value;
+      const activationInput = document.getElementById('activationInput').value;
+      const iterations = parseInt(document.getElementById('iterationsInput').value);
+      const tapeLength = parseInt(document.getElementById('tapeLengthInput').value);
+      
+      return new DiscreteCellularAutomata(canvas, {
+        cellSize: 5,
+        iterations: iterations,
+        tapeLength: tapeLength,
+        kernel: kernelInput,
+        activationMapping: activationInput
+      });
+    }
+    
+    // Initialize the simulator; if an error occurs, alert the user.
+    function initSimulator() {
+      clearErrorConsole();
+      try {
+        if (simulator) {
+          simulator.stopSimulation();
+        }
+        simulator = createSimulator();
+        simulator.setDimensions(simulator.tapeLength, simulator.iterations, simulator.cellSize);
+        simulator.initGrid();
+        simulator.drawGrid();
+      } catch (e) {
+        alert("Error initializing simulator:\n" + e.message);
+        logError(e.message);
+        throw e;
+      }
+    }
+    
+    // Plot the activation mapping on activationCanvas.
+    function plotActivationMapping() {
+      clearErrorConsole();
+      const activationInput = document.getElementById('activationInput').value;
+      let activationMapping;
+      try {
+        activationMapping = parseActivationMapping(activationInput);
+      } catch (e) {
+        alert("Error parsing activation mapping:\n" + e.message);
+        logError(e.message);
+        return;
+      }
+      
+      const ctx = activationCanvas.getContext('2d');
+      const width = activationCanvas.width;
+      const height = activationCanvas.height;
+      ctx.clearRect(0, 0, width, height);
+      
+      // Draw axes
+      ctx.strokeStyle = "#888";
+      ctx.beginPath();
+      ctx.moveTo(0, height*0.8);  // X-axis at 80% of height
+      ctx.lineTo(width, height*0.8);
+      ctx.stroke();
+      
+      // Find the range of keys in the activation mapping
+      const keys = Object.keys(activationMapping).map(Number);
+      const maxKey = Math.max(...keys, 9);  // At least show up to 9
+      
+      // Calculate bar width and spacing
+      const barWidth = Math.min(30, width / (maxKey + 1) * 0.7);
+      const spacing = (width - barWidth * (maxKey + 1)) / (maxKey + 2);
+      
+      // Draw activation mapping as a bar chart
+      ctx.font = "12px Arial";
+      ctx.textAlign = "center";
+      
+      for (let i = 0; i <= maxKey; i++) {
+        const value = activationMapping[i] !== undefined ? activationMapping[i] : 0;
+        
+        // X position for this sum value
+        const x = spacing + i * (barWidth + spacing);
+        
+        // Draw the sum label
+        ctx.fillStyle = "#000";
+        ctx.fillText(i.toString(), x + barWidth/2, height*0.9);
+        
+        // Draw the activation bar
+        ctx.fillStyle = value ? "rgba(0, 128, 0, 0.6)" : "rgba(200, 0, 0, 0.6)";
+        const barHeight = value ? height * 0.6 : 10;  // 1 = tall green bar, 0 = short red bar
+        ctx.fillRect(x, height*0.8 - barHeight, barWidth, barHeight);
+        
+        // Draw the value label
+        ctx.fillStyle = "#000";
+        ctx.fillText(value.toString(), x + barWidth/2, height*0.8 - barHeight - 5);
+      }
+      
+      // Add title
+      ctx.fillStyle = "#000";
+      ctx.textAlign = "center";
+      ctx.font = "14px Arial";
+      ctx.fillText("Activation Mapping", width/2, 20);
+    }
+    
+    // Toggle the error console.
+    document.getElementById('toggleConsoleBtn').addEventListener('click', function() {
+      const container = document.getElementById('errorConsoleContainer');
+      if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+        this.textContent = 'Hide Console';
+      } else {
+        container.style.display = 'none';
+        this.textContent = 'Show Console';
+      }
+    });
+    
+    // Toggle the help area.
+    document.getElementById('toggleHelpBtn').addEventListener('click', function() {
+      const container = document.getElementById('helpContainer');
+      if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+        this.textContent = 'Hide Help';
+      } else {
+        container.style.display = 'none';
+        this.textContent = 'How It Works';
+      }
+    });
+    
+    // Button event listeners.
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (simulator) simulator.stopSimulation();
+      document.getElementById('kernelInput').value = "[1,1,1]";
+      document.getElementById('activationInput').value = "{0:0, 1:1, 2:1, 3:0}";
+      document.getElementById('iterationsInput').value = "100";
+      document.getElementById('tapeLengthInput').value = "100";
+      initSimulator();
+      plotActivationMapping();
+    });
+    
+    document.getElementById('startBtn').addEventListener('click', () => {
+      // Only initialize if there's no simulator yet or settings changed
+      if (!simulator) {
+        initSimulator();
+        plotActivationMapping();
+      } else {
+        // Apply settings without resetting the grid
+        try {
+          const kernelInput = document.getElementById('kernelInput').value;
+          const activationInput = document.getElementById('activationInput').value;
+          const iterations = parseInt(document.getElementById('iterationsInput').value);
+          const tapeLength = parseInt(document.getElementById('tapeLengthInput').value);
+          
+          // Update simulator properties without destroying the grid
+          simulator.kernel = JSON.parse(kernelInput);
+          simulator.activationMappingString = activationInput;
+          simulator.activationMapping = parseActivationMapping(activationInput);
+          simulator.iterations = iterations;
+          simulator.tapeLength = tapeLength;
+          
+          // Only update canvas if tape length changed
+          if (simulator.grid[0].length !== tapeLength) {
+            initSimulator(); // Need complete reset if tape length changed
+          }
+          
+          plotActivationMapping();
+        } catch (e) {
+          alert("Error updating settings:\n" + e.message);
+          logError(e.message);
+        }
+      }
+      simulator.startSimulation(5);
+    });
+    
+    document.getElementById('stopBtn').addEventListener('click', () => {
+      // Just stop the simulation, don't reset anything
+      if (simulator) {
+        simulator.stopSimulation();
+      }
+    });
+    
+    document.getElementById('randomizeBtn').addEventListener('click', () => {
+      // Apply settings and randomize the grid
+      initSimulator();
+      plotActivationMapping();
+      simulator.randomizeGrid();
+      simulator.drawGrid();
+    });
+    
+    document.getElementById('plotActivationBtn').addEventListener('click', plotActivationMapping);
+    
+    window.onload = function() {
+      initSimulator();
+      // Initial plot of the activation mapping
+      plotActivationMapping();
+    };
+  </script>
+</body>
+</html> 
