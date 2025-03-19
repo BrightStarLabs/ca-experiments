@@ -4,6 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CA Experiments</title>
+  <!-- Plausible Analytics -->
+  <script defer data-domain="brightstarlabs.github.io/ca-experiments" src="https://plausible.io/js/script.tagged-events.js"></script>
+  <!-- Custom tracking script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Track simulator links
+      document.querySelectorAll(".experiment-link").forEach(function(link) {
+        link.addEventListener("click", function(e) {
+          // Get the CA type from the class list
+          let caType = "";
+          if (this.classList.contains("discrete")) caType = "Discrete";
+          else if (this.classList.contains("continuous")) caType = "Continuous";
+          else if (this.classList.contains("stochastic")) caType = "Stochastic";
+          
+          // Track the event with the CA type
+          plausible('Simulator Launched', { 
+            props: { 
+              type: caType,
+              url: this.href 
+            }
+          });
+        });
+      });
+      
+      // Track outbound links (LinkedIn)
+      document.querySelectorAll("footer a").forEach(function(link) {
+        if (link.host !== window.location.host) {
+          link.addEventListener("click", function() {
+            plausible("Outbound Link Clicked", { 
+              props: { url: link.href }
+            });
+          });
+        }
+      });
+    });
+  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -67,7 +103,7 @@
     }
     
     .experiment-item.stochastic {
-      border-left-color: #9c27b0; /* Purple for stochastic */
+      border-left-color: #9c27b0;
     }
     
     .experiment-header {
@@ -133,6 +169,96 @@
       padding-top: 20px;
     }
     
+    /* Formula Section Styles */
+    .formula-section {
+      margin: 20px 0 30px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background-color: #f8f9fa;
+    }
+    
+    .formula-title {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.25em;
+      color: #333;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 8px;
+    }
+    
+    .formula {
+      font-family: 'STIX Two Math', 'Cambria Math', 'Georgia', serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 1.6em;
+      text-align: center;
+      margin: 20px 0;
+      padding: 15px;
+      background-color: white;
+      border-radius: 4px;
+      border: 1px solid #e8e8e8;
+      letter-spacing: 0.5px;
+    }
+    
+    .formula-explanation-wrapper {
+      margin-bottom: 15px;
+    }
+    
+    .formula-explanation {
+      margin: 5px 0 15px 0;
+      padding-left: 25px;
+    }
+    
+    .formula-explanation li {
+      margin-bottom: 8px;
+    }
+    
+    .ca-types-wrapper {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #e8e8e8;
+    }
+    
+    .ca-types-list {
+      list-style-type: none;
+      padding-left: 5px;
+      margin: 0;
+    }
+    
+    .ca-types-list li {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .ca-types-list li .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    
+    .ca-types-list li.discrete .dot {
+      background-color: #333;
+    }
+    
+    .ca-types-list li.continuous .dot {
+      background-color: #3a7bd5;
+    }
+    
+    .ca-types-list li.stochastic .dot {
+      background-color: #9c27b0;
+    }
+    
+    .privacy-notice {
+      font-size: 12px;
+      color: #999;
+      margin-top: 8px;
+    }
+    
+    /* Responsive adjustments */
     @media (max-width: 600px) {
       .container {
         padding: 20px;
@@ -143,6 +269,10 @@
         align-items: flex-start;
         gap: 10px;
       }
+      
+      .ca-types-list li {
+        margin-bottom: 10px;
+      }
     }
   </style>
 </head>
@@ -150,6 +280,31 @@
   <div class="container">
     <h1>Convolutional CA Experiments</h1>
     <p class="intro">Explore the fascinating world of 1-dimensional convolutional cellular automata with these interactive simulators. Below are experiments with different types of convolutional cellular automata systems.</p>
+    
+    <div class="formula-section">
+      <h3 class="formula-title">Update Rule</h3>
+      <p>All cellular automata here evolve using a convolution-based approach instead of standard rules:</p>
+      <div class="formula">
+        s<sub>t+1</sub> = σ(K ∗ s<sub>t</sub>)
+      </div>
+      <div class="formula-explanation-wrapper">
+        <p>Where:</p>
+        <ul class="formula-explanation">
+          <li><strong>s<sub>t</sub></strong> is the complete state (the entire tape) at time t</li>
+          <li><strong>K</strong> is the convolution kernel that defines the local interaction pattern</li>
+          <li><strong>∗</strong> represents the convolution operation that applies the kernel to each position</li>
+          <li><strong>σ</strong> is the activation function that determines the new cell values</li>
+        </ul>
+      </div>
+      <p>This approach computes each new cell's state based on a weighted sum of its neighborhood, defined by the kernel, followed by a nonlinear transformation.</p>
+      <div class="ca-types-wrapper">
+        <ul class="ca-types-list">
+          <li class="discrete"><span class="dot"></span> Discrete CA: Activation function maps to binary values (0 or 1)</li>
+          <li class="continuous"><span class="dot"></span> Continuous CA: Activation function outputs real values in range [-1, 1]</li>
+          <li class="stochastic"><span class="dot"></span> Stochastic CA: Activation function defines transition probabilities [0-100%]</li>
+        </ul>
+      </div>
+    </div>
     
     <div class="experiment-list">
       <!-- Discrete CA -->
@@ -187,13 +342,11 @@
         </p>
         <p class="note">Note: Try setting probabilities like {0:0, 1:0.3, 2:0.7, 3:1} to see how randomness creates interesting patterns that change with each run.</p>
       </div>
-      
-      <!-- Additional experiments can be added here following the same pattern -->
-      
     </div>
     
     <footer>
-      <p>All simulators implement the evolution rule s<sub>t+1</sub> = σ(K * s<sub>t</sub>) with different value ranges and activation functions.</p>
+      <p>Made by Giacomo Bocchese <a href="https://www.linkedin.com/in/giacomo-bocchese-44a45a257">LinkedIn</a></p>
+      <p class="privacy-notice">This website doesn't collect cookies but may collect some anonymous statistics, in comliance with regulations.</p>
     </footer>
   </div>
 </body>
