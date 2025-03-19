@@ -28,8 +28,8 @@
         });
       });
       
-      // Track outbound links (LinkedIn)
-      document.querySelectorAll("footer a").forEach(function(link) {
+      // Track outbound links (LinkedIn, GitHub, PayPal)
+      document.querySelectorAll("footer a, .support-section a, .github-link").forEach(function(link) {
         if (link.host !== window.location.host) {
           link.addEventListener("click", function() {
             plausible("Outbound Link Clicked", { 
@@ -258,6 +258,64 @@
       margin-top: 8px;
     }
     
+    /* GitHub link style */
+    .github-link {
+      display: inline-block;
+      color: #333;
+      font-weight: 500;
+      text-decoration: none;
+      margin: 8px 0;
+      padding: 4px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f8f8f8;
+      transition: all 0.2s ease;
+    }
+    
+    .github-link:hover {
+      background-color: #eee;
+      border-color: #ccc;
+    }
+    
+    /* Support section styles */
+    .support-section {
+      margin: 40px 0 30px;
+      padding: 25px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      text-align: center;
+    }
+    
+    .support-title {
+      color: #444;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.4em;
+    }
+    
+    .support-text {
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    .donation-button {
+      display: inline-block;
+      color: white;
+      background-color: #0070ba; /* PayPal blue */
+      font-weight: 500;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    .donation-button:hover {
+      background-color: #005ea6;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
     /* Responsive adjustments */
     @media (max-width: 600px) {
       .container {
@@ -344,9 +402,17 @@
       </div>
     </div>
     
+    <!-- Support section - placed before the footer -->
+    <div class="support-section">
+      <h3 class="support-title">Support This Project</h3>
+      <p class="support-text">This project is open source, supporting it you allow us to share other interactive experiments to diffuse the knowledge about cellular automatas</p>
+      <a href="https://www.paypal.com/donate/?hosted_button_id=SRXLV37MAQS7S" class="donation-button">Support with PayPal</a>
+    </div>
+    
     <footer>
       <p>Made by Giacomo Bocchese <a href="https://www.linkedin.com/in/giacomo-bocchese-44a45a257">LinkedIn</a></p>
-      <p class="privacy-notice">This website doesn't collect cookies but may collect some anonymous statistics, in comliance with regulations.</p>
+      <p><a href="https://github.com/brightstarlabs/ca-experiments" class="github-link">Contribute to this open source project on GitHub</a></p>
+      <p class="privacy-notice">This website doesn't collect cookies but may collect some anonymous statistics, in compliance with regulations.</p>
     </footer>
   </div>
 </body>
