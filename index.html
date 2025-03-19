@@ -263,7 +263,6 @@
       <button id="startBtn">Start</button>
       <button id="stopBtn">Stop</button>
       <button id="randomizeBtn">Randomize</button>
-      <button id="applyBtn">Apply</button>
       <button id="resetBtn">Reset</button>
     </div>
   </div>
@@ -592,11 +591,6 @@
     });
     
     // Button event listeners.
-    document.getElementById('applyBtn').addEventListener('click', function() {
-      initSimulator();
-      // Also plot the activation function when applying changes
-      plotActivationFunction();
-    });
     document.getElementById('resetBtn').addEventListener('click', () => {
       if (simulator) simulator.stopSimulation();
       document.getElementById('kernelInput').value = "[1,1,1]";
@@ -604,17 +598,58 @@
       document.getElementById('iterationsInput').value = "100";
       document.getElementById('tapeLengthInput').value = "100";
       initSimulator();
+      plotActivationFunction();
     });
+    
     document.getElementById('startBtn').addEventListener('click', () => {
+      // Only initialize if there's no simulator yet or settings changed
+      if (!simulator) {
+        initSimulator();
+        plotActivationFunction();
+      } else {
+        // Apply settings without resetting the grid
+        try {
+          const kernelInput = document.getElementById('kernelInput').value;
+          const activationInput = document.getElementById('continuousActivationInput').value;
+          const iterations = parseInt(document.getElementById('iterationsInput').value);
+          const tapeLength = parseInt(document.getElementById('tapeLengthInput').value);
+          
+          // Update simulator properties without destroying the grid
+          simulator.kernel = JSON.parse(kernelInput);
+          simulator.activationFunctionString = activationInput;
+          simulator.activation = parseActivationFunction(activationInput);
+          simulator.iterations = iterations;
+          simulator.tapeLength = tapeLength;
+          
+          // Only update canvas if tape length changed
+          if (simulator.grid[0].length !== tapeLength) {
+            initSimulator(); // Need complete reset if tape length changed
+          }
+          
+          plotActivationFunction();
+        } catch (e) {
+          alert("Error updating settings:\n" + e.message);
+          logError(e.message);
+        }
+      }
       simulator.startSimulation(5);
     });
+    
     document.getElementById('stopBtn').addEventListener('click', () => {
-      simulator.stopSimulation();
+      // Just stop the simulation, don't reset anything
+      if (simulator) {
+        simulator.stopSimulation();
+      }
     });
+    
     document.getElementById('randomizeBtn').addEventListener('click', () => {
+      // Create new simulator with current settings
+      initSimulator();
+      plotActivationFunction();
       simulator.randomizeGrid();
       simulator.drawGrid();
     });
+    
     document.getElementById('plotActivationBtn').addEventListener('click', plotActivationFunction);
     
     window.onload = function() {
