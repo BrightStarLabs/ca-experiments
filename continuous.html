@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Continuous Convolutional Cellular Automata</title>
+  <style>
+    /* Basic Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+    
+    .controls {
+      background: #fff;
+      padding: 15px;
+      margin: 0 auto 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 1000px;
+    }
+    
+    .settings-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+    
+    .input-group {
+      display: flex;
+      align-items: center;
+      margin: 5px 15px;
+    }
+    
+    .input-group label {
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+    
+    .input-group input {
+      padding: 5px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+    }
+    
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 3px;
+      background-color: #666;
+      color: #fff;
+    }
+    
+    button:hover {
+      background-color: #555;
+    }
+    
+    /* Flexible Layout System */
+    .content-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      gap: 20px;
+    }
+    
+    /* Side panels container */
+    .side-panels {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 250px;
+    }
+    
+    /* Main canvas container */
+    .central-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 500px;
+      max-width: 1000px;
+    }
+    
+    canvas#automataCanvas {
+      border: 1px solid #333;
+      background-color: #fff;
+      display: block;
+      max-width: 100%;
+    }
+    
+    /* Console Area Styles */
+    .consoleArea {
+      width: 100%;
+    }
+    
+    #toggleConsoleBtn {
+      margin-bottom: 5px;
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 100%;
+    }
+    
+    #errorConsoleContainer {
+      background: #333;
+      color: #ddd;
+      border: 1px solid #666;
+      border-radius: 4px;
+      width: 100%;
+      height: 150px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    #errorConsole {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 8px;
+      box-sizing: border-box;
+      font-family: monospace;
+      font-size: 12px;
+      color: #ddd;
+    }
+    
+    /* Help Area Styles */
+    .helpArea {
+      width: 100%;
+    }
+    
+    #toggleHelpBtn {
+      margin-bottom: 5px;
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 100%;
+    }
+    
+    #helpContainer {
+      background: #fff;
+      color: #333;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      height: 250px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    #helpContent {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 12px;
+    }
+    
+    #helpContent h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    #helpContent p {
+      margin: 6px 0;
+    }
+    
+    #helpContent ul {
+      margin: 6px 0;
+      padding-left: 20px;
+    }
+    
+    /* Activation Function Plot Area */
+    .plotArea {
+      width: 100%;
+    }
+    
+    #plotActivationBtn {
+      margin-bottom: 5px;
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 100%;
+    }
+    
+    #activationCanvas {
+      border: 1px solid #333;
+      background-color: #fff;
+      width: 100%;
+      height: 180px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 1000px) {
+      .content-wrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .side-panels {
+        order: 2;
+        width: 90%;
+        max-width: 500px;
+      }
+      
+      .central-content {
+        order: 1;
+        min-width: auto;
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Continuous Convolutional Cellular Automata</h1>
+  <div class="controls">
+    <div class="settings-row">
+      <div class="input-group">
+        <label for="kernelInput">Kernel:</label>
+        <input type="text" id="kernelInput" placeholder="[1,1,1]" value="[1,1,1]">
+      </div>
+      <div class="input-group">
+        <label for="continuousActivationInput">Activation Function:</label>
+        <input type="text" id="continuousActivationInput" placeholder="1-x*x" value="1-x*x" list="functionSuggestions">
+        <datalist id="functionSuggestions">
+          <option value="1-x*x">Inverted Parabola</option>
+          <option value="Math.sin(x*Math.PI)">Sine Wave</option>
+          <option value="-x">Negation</option>
+          <option value="x">Identity</option>
+        </datalist>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="input-group">
+        <label for="iterationsInput">Iterations:</label>
+        <input type="number" id="iterationsInput" placeholder="100" value="100">
+      </div>
+      <div class="input-group">
+        <label for="tapeLengthInput">Tape Length:</label>
+        <input type="number" id="tapeLengthInput" placeholder="100" value="100">
+      </div>
+    </div>
+    <div class="buttons">
+      <button id="startBtn">Start</button>
+      <button id="stopBtn">Stop</button>
+      <button id="randomizeBtn">Randomize</button>
+      <button id="applyBtn">Apply</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </div>
+  
+  <div class="content-wrapper">
+    <!-- Left side panels -->
+    <div class="side-panels">
+      <!-- Console Area -->
+      <div class="consoleArea">
+        <button id="toggleConsoleBtn">Show Console</button>
+        <div id="errorConsoleContainer" style="display:none;">
+          <div id="errorConsole"></div>
+        </div>
+      </div>
+      
+      <!-- Activation Function Plot -->
+      <div class="plotArea">
+        <button id="plotActivationBtn">Plot Activation</button>
+        <canvas id="activationCanvas" width="250" height="180"></canvas>
+      </div>
+    </div>
+    
+    <!-- Center: Main Automata Canvas -->
+    <div class="central-content">
+      <canvas id="automataCanvas"></canvas>
+    </div>
+    
+    <!-- Right side panels -->
+    <div class="side-panels">
+      <!-- Help Section -->
+      <div class="helpArea">
+        <button id="toggleHelpBtn">How It Works</button>
+        <div id="helpContainer" style="display:none;">
+          <div id="helpContent">
+            <h3>Continuous Cellular Automata</h3>
+            <p>This simulator evolves a 1-dimensional cellular automaton using convolution with a kernel and a continuous activation function. Cell values range from -1 to 1.</p>
+            <p>Each new cell state is computed using:</p>
+            <p style="text-align:center;font-style:italic;">s<sub>t+1</sub> = σ(K * s<sub>t</sub>)</p>
+            <p>Where σ is the user-defined activation function, clipped to [-1,1].</p>
+            <ul>
+              <li><strong>Kernel:</strong> Determines the convolution weights</li>
+              <li><strong>Activation Function:</strong> Transforms the convolution sum</li>
+              <li><strong>Positive values:</strong> Shown in red scale</li>
+              <li><strong>Negative values:</strong> Shown in blue scale</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Parse the activation function string into a function that maps x -> y with clipping.
+    function parseActivationFunction(expression) {
+      try {
+        const func = new Function('x', 'return ' + expression);
+        return function(x) {
+          let y = func(x);
+          if (isNaN(y) || !isFinite(y)) {
+            throw new Error('Non-finite result: ' + y);
+          }
+          // Clip y to the range [-1, 1]
+          return Math.max(-1, Math.min(1, y));
+        };
+      } catch(e) {
+        throw new Error('Error parsing activation function "' + expression + '": ' + e.message);
+      }
+    }
+    
+    // Log errors to the error console.
+    function logError(message) {
+      const consoleDiv = document.getElementById('errorConsole');
+      const msg = document.createElement('div');
+      msg.textContent = message;
+      consoleDiv.appendChild(msg);
+    }
+    
+    // Clear the error console.
+    function clearErrorConsole() {
+      document.getElementById('errorConsole').innerHTML = '';
+    }
+    
+    // ContinuousCellularAutomata class definition.
+    // The simulation uses cell values in the range [-1, 1].
+    // Positive values are rendered on a red scale (white to red), and negative on a blue scale (blue to white).
+    class ContinuousCellularAutomata {
+      constructor(canvas, config) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        config = config || {};
+        this.cellSize = config.cellSize || 5;
+        this.iterations = config.iterations || 100;
+        this.tapeLength = config.tapeLength || 100;
+        // Parse the kernel. Do not overwrite with defaults—instead, throw errors.
+        this.kernel = JSON.parse(config.kernel);
+        if (!this.kernel || !Array.isArray(this.kernel)) {
+          throw new Error("Kernel must be a valid JSON array.");
+        }
+        // Parse the activation function.
+        this.activationFunctionString = config.continuousActivationFunction || "1-x*x";
+        this.activation = parseActivationFunction(this.activationFunctionString);
+        this.grid = [];
+        this.intervalId = null;
+      }
+      
+      // Setup canvas dimensions.
+      setDimensions(tapeLength, iterations, cellSize) {
+        this.tapeLength = tapeLength;
+        this.iterations = iterations;
+        this.cellSize = cellSize;
+        this.canvas.width = tapeLength * cellSize;
+        this.canvas.height = iterations * cellSize;
+      }
+      
+      // Initialize grid with a single row (the center cell active).
+      initGrid() {
+        this.grid = [];
+        let row = new Array(this.tapeLength).fill(0);
+        row[Math.floor(this.tapeLength / 2)] = 1;
+        this.grid.push(row);
+      }
+      
+      // Randomize the initial row with values in [-1, 1].
+      randomizeGrid() {
+        this.grid = [];
+        let row = [];
+        for (let i = 0; i < this.tapeLength; i++) {
+          row.push(Math.random() * 2 - 1);
+        }
+        this.grid.push(row);
+      }
+      
+      // Simulate one time step using convolution.
+      simulateStep() {
+        const oldRow = this.grid[this.grid.length - 1].slice();
+        const tapeLength = oldRow.length;
+        const newRow = [];
+        const kernel = this.kernel;
+        const anchor = Math.floor(kernel.length / 2);
+  
+        for (let x = 0; x < tapeLength; x++) {
+          let sum = 0;
+          for (let k = 0; k < kernel.length; k++) {
+            const idx = x + k - anchor;
+            const cellValue = (idx >= 0 && idx < tapeLength) ? oldRow[idx] : 0;
+            sum += cellValue * kernel[k];
+          }
+          // Use the parsed activation function.
+          let value = this.activation(sum);
+          newRow.push(value);
+        }
+        this.grid.push(newRow);
+  
+        // Increase canvas height if necessary.
+        if (this.grid.length * this.cellSize > this.canvas.height) {
+          this.canvas.height = this.grid.length * this.cellSize;
+        }
+  
+        this.drawGrid();
+      }
+      
+      // Draw the simulation grid.
+      drawGrid() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        for (let y = 0; y < this.grid.length; y++) {
+          for (let x = 0; x < this.grid[y].length; x++) {
+            const v = this.grid[y][x];
+            let color;
+            if (v >= 0) {
+              // For values in [0, 1]: 0 -> white, 1 -> pure red.
+              let factor = v;
+              const r = 255;
+              const g = Math.round(255 * (1 - factor));
+              const b = Math.round(255 * (1 - factor));
+              color = `rgb(${r}, ${g}, ${b})`;
+            } else {
+              // For values in [-1, 0]: -1 -> pure blue, 0 -> white.
+              let factor = -v;
+              const r = Math.round(255 * (1 - factor));
+              const g = Math.round(255 * (1 - factor));
+              const b = 255;
+              color = `rgb(${r}, ${g}, ${b})`;
+            }
+            this.ctx.fillStyle = color;
+            this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+          }
+        }
+      }
+      
+      // Start simulation at the specified interval.
+      startSimulation(interval = 5) {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+        }
+        this.intervalId = setInterval(() => {
+          if (this.grid.length >= this.iterations) {
+            clearInterval(this.intervalId);
+          } else {
+            this.simulateStep();
+          }
+        }, interval);
+      }
+      
+      // Stop simulation.
+      stopSimulation() {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+          this.intervalId = null;
+        }
+      }
+    }
+    
+    let simulator;
+    const canvas = document.getElementById('automataCanvas');
+    const activationCanvas = document.getElementById('activationCanvas');
+    
+    // Create a simulation instance using the current settings.
+    function createSimulator() {
+      const kernelInput = document.getElementById('kernelInput').value;
+      const activationInput = document.getElementById('continuousActivationInput').value;
+      const iterations = parseInt(document.getElementById('iterationsInput').value);
+      const tapeLength = parseInt(document.getElementById('tapeLengthInput').value);
+      
+      return new ContinuousCellularAutomata(canvas, {
+        cellSize: 5,
+        iterations: iterations,
+        tapeLength: tapeLength,
+        kernel: kernelInput,
+        continuousActivationFunction: activationInput
+      });
+    }
+    
+    // Initialize the simulator; if an error occurs, alert the user.
+    function initSimulator() {
+      clearErrorConsole();
+      try {
+        if (simulator) {
+          simulator.stopSimulation();
+        }
+        simulator = createSimulator();
+        simulator.setDimensions(simulator.tapeLength, simulator.iterations, simulator.cellSize);
+        simulator.initGrid();
+        simulator.drawGrid();
+      } catch (e) {
+        alert("Error initializing simulator:\n" + e.message);
+        logError(e.message);
+        throw e;
+      }
+    }
+    
+    // Plot the activation function on activationCanvas.
+    function plotActivationFunction() {
+      clearErrorConsole();
+      const activationInput = document.getElementById('continuousActivationInput').value;
+      let activation;
+      try {
+        activation = parseActivationFunction(activationInput);
+      } catch (e) {
+        alert("Error parsing activation function:\n" + e.message);
+        logError(e.message);
+        return;
+      }
+      const ctx = activationCanvas.getContext('2d');
+      const width = activationCanvas.width;
+      const height = activationCanvas.height;
+      ctx.clearRect(0, 0, width, height);
+      
+      // Draw axes.
+      ctx.strokeStyle = "#888";
+      ctx.beginPath();
+      // X-axis (y=height/2)
+      ctx.moveTo(0, height/2);
+      ctx.lineTo(width, height/2);
+      // Y-axis (x = width/2)
+      ctx.moveTo(width/2, 0);
+      ctx.lineTo(width/2, height);
+      ctx.stroke();
+      
+      // Plot the activation function over x in the range [-5, 5].
+      ctx.strokeStyle = "lime";
+      ctx.beginPath();
+      const xMin = -5, xMax = 5;
+      for (let i = 0; i < width; i++) {
+        // Map pixel to x-value.
+        const x = xMin + (i / width) * (xMax - xMin);
+        let y;
+        try {
+          y = activation(x); // y is in [-1, 1]
+        } catch (e) {
+          logError(e.message);
+          return;
+        }
+        // Map y to canvas coordinate (0 at top, height at bottom).
+        const yCanvas = height/2 - (y * (height/2));
+        if (i === 0) {
+          ctx.moveTo(i, yCanvas);
+        } else {
+          ctx.lineTo(i, yCanvas);
+        }
+      }
+      ctx.stroke();
+    }
+    
+    // Toggle the error console.
+    document.getElementById('toggleConsoleBtn').addEventListener('click', function() {
+      const container = document.getElementById('errorConsoleContainer');
+      if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+        this.textContent = 'Hide Console';
+      } else {
+        container.style.display = 'none';
+        this.textContent = 'Show Console';
+      }
+    });
+    
+    // Toggle the help area.
+    document.getElementById('toggleHelpBtn').addEventListener('click', function() {
+      const container = document.getElementById('helpContainer');
+      if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+        this.textContent = 'Hide Help';
+      } else {
+        container.style.display = 'none';
+        this.textContent = 'How It Works';
+      }
+    });
+    
+    // Button event listeners.
+    document.getElementById('applyBtn').addEventListener('click', function() {
+      initSimulator();
+      // Also plot the activation function when applying changes
+      plotActivationFunction();
+    });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (simulator) simulator.stopSimulation();
+      document.getElementById('kernelInput').value = "[1,1,1]";
+      document.getElementById('continuousActivationInput').value = "1-x*x";
+      document.getElementById('iterationsInput').value = "100";
+      document.getElementById('tapeLengthInput').value = "100";
+      initSimulator();
+    });
+    document.getElementById('startBtn').addEventListener('click', () => {
+      simulator.startSimulation(5);
+    });
+    document.getElementById('stopBtn').addEventListener('click', () => {
+      simulator.stopSimulation();
+    });
+    document.getElementById('randomizeBtn').addEventListener('click', () => {
+      simulator.randomizeGrid();
+      simulator.drawGrid();
+    });
+    document.getElementById('plotActivationBtn').addEventListener('click', plotActivationFunction);
+    
+    window.onload = function() {
+      initSimulator();
+      // Initial plot of the activation function
+      plotActivationFunction();
+    };
+  </script>
+</body>
+</html>
